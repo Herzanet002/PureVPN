@@ -1,4 +1,4 @@
-﻿<Window x:Class="PureVPN.MainWindow"
+﻿<Window x:Class="PureVPN.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -24,23 +24,48 @@
         </Grid.ColumnDefinitions>
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="70"/>
-                <RowDefinition/>
-                <RowDefinition/>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="60"/>
+                <RowDefinition Height="50"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
             <TextBlock Grid.Row="0" Text="PureVPN" VerticalAlignment="Center" HorizontalAlignment="Center" 
-                       Foreground="#FF676767" FontSize="24" FontWeight="SemiBold"></TextBlock>
-            <Button Grid.Row="1" Height="28" HorizontalAlignment="Center" VerticalAlignment="Center" 
-                     Command="{Binding LoadListCommand}" Content="Загрузить список">
+                       FontSize="24" FontWeight="SemiBold">
+                <TextBlock.Foreground>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#FF3F3F3F" Offset="0.0" />
+                        <GradientStop Color="#FF7C24B7" Offset="0.8" />
+
+                        
+                    </LinearGradientBrush>
+                </TextBlock.Foreground>
+
+            </TextBlock>
+            <ProgressBar Grid.Row="1" IsIndeterminate="True" Style="{StaticResource MaterialDesignCircularProgressBar}"
+                           Visibility="{Binding IsProgressBarEnabled}" />
+            <StackPanel Grid.Row="2" Orientation="Vertical" VerticalAlignment="Center" >
+                <TextBlock Text="Ваш IP:" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center"></TextBlock>
+                <TextBlock Text="{Binding IpString}" FontSize="16" HorizontalAlignment="Center"></TextBlock>
+            </StackPanel>
+            <Button Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe MDL2 Assets"
+                     Command="{Binding LoadListCommand}" Content="&#xE72C;">
                 
             </Button>
 
 
         </Grid>
         <Grid Grid.Column="1">
-            <DataGrid ItemsSource="{Binding Servers, IsAsync=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                      AutoGenerateColumns="False" CanUserAddRows="False">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            
+            <TextBox Grid.Row="0" Text="Поиск VPN сервера" HorizontalContentAlignment="Center" VerticalAlignment="Center" Height="26" 
+                     VerticalContentAlignment="Center" Margin="80,0,80,0"></TextBox>
+            <DataGrid Grid.Row="1" ItemsSource="{Binding Servers, IsAsync=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
+                      AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow">
+               
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="HostName" Binding="{Binding HostName}"></DataGridTextColumn>
                     <DataGridTextColumn Header="Ip" Binding="{Binding Ip}"></DataGridTextColumn>

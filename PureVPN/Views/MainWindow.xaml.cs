@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace PureVPN
+namespace PureVPN.Views
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

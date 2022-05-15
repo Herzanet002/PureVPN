@@ -7,7 +7,10 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using PureVPN.Views;
+
 
 namespace PureVPN.ViewModels
 {
@@ -17,14 +20,32 @@ namespace PureVPN.ViewModels
 
         private ObservableCollection<ServerInfo> _servers;
         private Visibility _isProgressBarEnabled = Visibility.Collapsed;
-        private static string _statusText = "Ready!";
+        private static string _ipString;
+        private static ServerInfo _selectedServer;
+        private static Page _currentPage;
+        private static ServerInfoPage _serverInfoPage;
         public ICommand LoadListCommand { get; set; }
 
-        public string StatusText
+        public string IpString
         {
-            get => _statusText;
-            set => Set(ref _statusText, value);
+            get => _ipString;
+            set => Set(ref _ipString, value);
         }
+        public Page CurrentPage
+        {
+            get => _currentPage;
+            set => Set(ref _currentPage, value);
+        }
+        public ServerInfo SelectedServer
+        {
+            get => _selectedServer;
+            set
+            {
+                CurrentPage = _serverInfoPage;
+                Set(ref _selectedServer, value);
+            }
+        }
+
         public ObservableCollection<ServerInfo> Servers
         {
             get => _servers;
@@ -38,26 +59,29 @@ namespace PureVPN.ViewModels
         }
         public MainWindowViewModel()
         {
+            IpString = GetIpAddress();
             _servers = new ObservableCollection<ServerInfo>();
-            LoadListCommand = new LambdaCommand(GetServersList, _ => true);
-
+            LoadListCommand = new LambdaCommand(GetServersListCommand_Executed, _ => true);
+            GetServersList();
         }
 
-        private async void GetServersList(object obj)
+        private async void GetServersList()
         {
+            Servers = new ObservableCollection<ServerInfo>();
             IsProgressBarEnabled = Visibility.Visible;
-            StatusText = "Loading...";
-            var ip = GetIpAddress();
             await Task.Run(async () =>
             {
                 await foreach (var serverList in GetDataLines())
                     Application.Current.Dispatcher.Invoke(() => Servers.Add(serverList));
             });
-
             IsProgressBarEnabled = Visibility.Collapsed;
-            StatusText = "Ready!";
+        }
+        private void GetServersListCommand_Executed(object obj)
+        {
+            
+            GetServersList();
 
-
+            
         }
         private static async Task<Stream> GetDataStream()
         {
