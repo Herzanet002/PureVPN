@@ -1,6 +1,10 @@
-﻿using System.Windows;
-using PureVPN.Helpers;
-using PureVPN.ViewModels;
+﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
 
 namespace PureVPN
 {
@@ -9,13 +13,5 @@ namespace PureVPN
     /// </summary>
     public partial class App : Application
     {
-        public NavigationStore NavigationStore;
-        App()
-        {
-            NavigationStore = new NavigationStore()
-            {
-                CurrentViewModel = new ServersListPageViewModel()
-            };
-        }
     }
 }

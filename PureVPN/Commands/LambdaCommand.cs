@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PureVPN.Commands
 {
-    internal class LambdaCommand : BaseCommand
+    internal class LambdaCommand : Command
     {
         private readonly Action<object> _execute;
         private readonly Func<object, bool> _canExecute;
