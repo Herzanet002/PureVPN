@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using PureVPN.ViewModels;
 
 namespace PureVPN.Views
 {

@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace PureVPN.Views
 {
     /// <summary>
-    /// Логика взаимодействия для ServersListPage.xaml
+    /// Логика взаимодействия для ServerInfoPageView.xaml
     /// </summary>
-    public partial class ServersListPage : Page
+    public partial class ServerInfoPageView : UserControl
     {
-        public ServersListPage()
+        public ServerInfoPageView()
         {
             InitializeComponent();
         }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PureVPN.ViewModels
 {
-    internal class ServersListViewModel
+    public class ServerInfoPageViewModel: Base.ViewModel
     {
     }
 }

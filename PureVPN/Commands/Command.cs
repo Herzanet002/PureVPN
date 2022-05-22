@@ -1,18 +1,32 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace PureVPN.Commands
 {
-    internal abstract class Command : ICommand
+    public class Command : ICommand
     {
-        public event EventHandler? CanExecuteChanged
+        private readonly Action<object> _execute;
+        private Func<object, bool> _canExecute;
+
+        public Command(Action<object> execute, Func<object, bool> canExecute)
         {
-            add => CommandManager.RequerySuggested += value;
-            remove => CommandManager.RequerySuggested -= value;
+            _execute = execute;
+            _canExecute = canExecute;
+        }
+        public event EventHandler CanExecuteChanged;
+
+        public bool CanExecute(object parameter)
+        {
+            return true;
         }
 
-        public abstract bool CanExecute(object? parameter);
-
-        public abstract void Execute(object? parameter);
+        public void Execute(object parameter)
+        {
+            _execute(parameter);
+        }
     }
 }

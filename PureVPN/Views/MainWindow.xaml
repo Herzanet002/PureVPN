@@ -7,6 +7,7 @@
         xmlns:vm="clr-namespace:PureVPN.ViewModels"
         mc:Ignorable="d"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:views="clr-namespace:PureVPN.Views" 
         WindowStartupLocation="CenterScreen"
         Title="PureVPN" Height="500" Width="800"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
@@ -31,53 +32,30 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
             <TextBlock Grid.Row="0" Text="PureVPN" VerticalAlignment="Center" HorizontalAlignment="Center" 
-                       FontSize="24" FontWeight="SemiBold">
+                       FontSize="26" FontWeight="SemiBold">
                 <TextBlock.Foreground>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#FF3F3F3F" Offset="0.0" />
+                        <GradientStop Color="#FF3F3F3F" Offset="0.25" />
                         <GradientStop Color="#FF7C24B7" Offset="0.8" />
-
-                        
                     </LinearGradientBrush>
                 </TextBlock.Foreground>
 
             </TextBlock>
-            <ProgressBar Grid.Row="1" IsIndeterminate="True" Style="{StaticResource MaterialDesignCircularProgressBar}"
-                           Visibility="{Binding IsProgressBarEnabled}" />
             <StackPanel Grid.Row="2" Orientation="Vertical" VerticalAlignment="Center" >
                 <TextBlock Text="Ваш IP:" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center"></TextBlock>
-                <TextBlock Text="{Binding IpString}" FontSize="16" HorizontalAlignment="Center"></TextBlock>
+                <TextBlock Text="{Binding IpString}" FontSize="16" HorizontalAlignment="Center" Foreground="#DD6126A0"></TextBlock>
             </StackPanel>
-            <Button Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe MDL2 Assets"
-                     Command="{Binding LoadListCommand}" Content="&#xE72C;">
+
+        </Grid>
+        <ContentControl Grid.Column="1" Content="{Binding CurrentViewModel}">
+            <ContentControl.Resources>
+                <DataTemplate DataType="{x:Type vm:ServersListPageViewModel}">
+                    <views:ServersPageView/>
+                </DataTemplate>
                 
-            </Button>
+            </ContentControl.Resources>
 
-
-        </Grid>
-        <Grid Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="40"/>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
-            
-            <TextBox Grid.Row="0" Text="Поиск VPN сервера" HorizontalContentAlignment="Center" VerticalAlignment="Center" Height="26" 
-                     VerticalContentAlignment="Center" Margin="80,0,80,0"></TextBox>
-            <DataGrid Grid.Row="1" ItemsSource="{Binding Servers, IsAsync=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                      AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow">
-               
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="HostName" Binding="{Binding HostName}"></DataGridTextColumn>
-                    <DataGridTextColumn Header="Ip" Binding="{Binding Ip}"></DataGridTextColumn>
-                    <DataGridTextColumn Header="Ping" Binding="{Binding Ping}"></DataGridTextColumn>
-                    <DataGridTextColumn Header="Speed" Binding="{Binding Speed}"></DataGridTextColumn>
-                    <DataGridTextColumn Header="Country" Binding="{Binding CountryLong}"></DataGridTextColumn>
-                    <DataGridTextColumn Header="Sessions count" Binding="{Binding NumVpnSessions}"></DataGridTextColumn>
-                    <DataGridTextColumn Header="Operator" Binding="{Binding Operator}"></DataGridTextColumn>
-
-                </DataGrid.Columns>
-            </DataGrid>
-        </Grid>
+        </ContentControl>
 
     </Grid>
 </Window>
