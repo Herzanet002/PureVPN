@@ -5,79 +5,139 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PureVPN"
         xmlns:vm="clr-namespace:PureVPN.ViewModels"
+        xmlns:cvrts="clr-namespace:PureVPN.Converters"
         mc:Ignorable="d"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:views="clr-namespace:PureVPN.Views"
         WindowStartupLocation="CenterScreen"
-        Title="PureVPN" Height="500" Width="800"
+        Title="PureVPN" Height="600" Width="800"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
         TextElement.FontSize="13"
         TextOptions.TextFormattingMode="Ideal"
-        TextOptions.TextRenderingMode="Auto">
+        TextOptions.TextRenderingMode="Auto"
+         UseLayoutRounding="True">
+    <WindowChrome.WindowChrome>
+        <WindowChrome  CornerRadius="15"  
+                      ResizeBorderThickness="7" GlassFrameThickness="0 2 0 0" NonClientFrameEdges="Left,Bottom,Right"/>
+    </WindowChrome.WindowChrome>
     <Window.DataContext>
         <vm:MainWindowViewModel/>
     </Window.DataContext>
+    <Window.Resources>
+        <cvrts:DataGridValueConverter x:Key="DataGridValueConverter"/>
+
+    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="240"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="50"/>
-                <RowDefinition Height="20"/>
+                <RowDefinition Height="70"/>
                 <RowDefinition Height="60"/>
-                <RowDefinition Height="50"/>
+                <RowDefinition Height="Auto" MaxHeight="40"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
+
             <TextBlock Grid.Row="0" Text="PureVPN" VerticalAlignment="Center" HorizontalAlignment="Center" 
-                       FontSize="24" FontWeight="SemiBold">
+                       FontSize="26" FontWeight="SemiBold">
                 <TextBlock.Foreground>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#FF3F3F3F" Offset="0.0" />
+                        <GradientStop Color="#FF3F3F3F" Offset="0.25" />
                         <GradientStop Color="#FF7C24B7" Offset="0.8" />
-
-                        
                     </LinearGradientBrush>
                 </TextBlock.Foreground>
 
             </TextBlock>
-            <ProgressBar Grid.Row="1" IsIndeterminate="True" Style="{StaticResource MaterialDesignCircularProgressBar}"
-                           Visibility="{Binding IsProgressBarEnabled}" />
-            <StackPanel Grid.Row="2" Orientation="Vertical" VerticalAlignment="Center" >
+           
+
+            <StackPanel Grid.Row="1" Orientation="Vertical" VerticalAlignment="Top" >
                 <TextBlock Text="Ваш IP:" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center"></TextBlock>
-                <TextBlock Text="{Binding IpString}" FontSize="16" HorizontalAlignment="Center"></TextBlock>
+                <TextBlock Text="{Binding IpString}" FontSize="16" HorizontalAlignment="Center" 
+                           Foreground="#DD6126A0"/>
             </StackPanel>
-            <Button Grid.Row="3" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Segoe MDL2 Assets"
-                     Command="{Binding LoadListCommand}" Content="&#xE72C;">
-                
-            </Button>
+            <Grid Grid.Row="2" Background="#FF361059" Height="32" Visibility="{Binding IsConnectionStatusVisible, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+                <TextBlock Text="Подключено" Foreground="White" HorizontalAlignment="Center" FontSize="16" 
+                           VerticalAlignment="Center" />
+
+            </Grid>
+
+            <ContentControl Grid.Row="3" Margin="10,0,10,10" Visibility="{Binding IsServerInfoVisible}">
+                <ScrollViewer>
+                    <StackPanel>
+                        <StackPanel.Resources>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="Margin" Value="0,5,0,0"/>
+                            </Style>
+                        </StackPanel.Resources>
+                        <Button Content="{Binding ConnectButtonContent, UpdateSourceTrigger=PropertyChanged}" Margin="10"
+                                Command="{Binding ConnectCommand, UpdateSourceTrigger=PropertyChanged}"></Button>
+                        <TextBlock Text="DDNS hostname:" FontSize="16" FontWeight="SemiBold" Foreground="Indigo"/>
+                        <TextBlock  Text="{Binding SelectedServer.HostName, 
+                        UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="Страна:" FontSize="16" FontWeight="SemiBold" Foreground="Indigo"/>
+                        <TextBlock  Text="{Binding SelectedServer.CountryLong, 
+                        UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="Ip адрес:" FontSize="16" FontWeight="SemiBold" Foreground="Indigo"/>
+                        <TextBlock Text="{Binding SelectedServer.Ip, 
+                        UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="Количество VPN-сессий:" FontSize="16" FontWeight="SemiBold" Foreground="Indigo"/>
+                        <TextBlock Text="{Binding SelectedServer.NumVpnSessions, 
+                        UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="Скорость сервера:" FontSize="16" FontWeight="SemiBold" Foreground="Indigo"/>
+                        <TextBlock Text="{Binding SelectedServer.Speed, 
+                        UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="Ping:" FontSize="16" FontWeight="SemiBold" Foreground="Indigo"/>
+                        <TextBlock Text="{Binding SelectedServer.Ping, 
+                        UpdateSourceTrigger=PropertyChanged}"/>
+                        <TextBlock Text="Оператор:" FontSize="16" FontWeight="SemiBold" Foreground="Indigo"/>
+                        <TextBlock Text="{Binding SelectedServer.Operator, 
+                        UpdateSourceTrigger=PropertyChanged}"/>
+                    </StackPanel>
+
+                </ScrollViewer>
+
+            </ContentControl>
 
 
         </Grid>
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="40"/>
+                <RowDefinition Height="40"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            
-            <TextBox Grid.Row="0" Text="Поиск VPN сервера" HorizontalContentAlignment="Center" VerticalAlignment="Center" Height="26" 
-                     VerticalContentAlignment="Center" Margin="80,0,80,0"></TextBox>
-            <DataGrid Grid.Row="1" ItemsSource="{Binding Servers, IsAsync=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" 
-                      AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow">
-               
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="HostName" Binding="{Binding HostName}"></DataGridTextColumn>
-                    <DataGridTextColumn Header="Ip" Binding="{Binding Ip}"></DataGridTextColumn>
-                    <DataGridTextColumn Header="Ping" Binding="{Binding Ping}"></DataGridTextColumn>
-                    <DataGridTextColumn Header="Speed" Binding="{Binding Speed}"></DataGridTextColumn>
-                    <DataGridTextColumn Header="Country" Binding="{Binding CountryLong}"></DataGridTextColumn>
-                    <DataGridTextColumn Header="Sessions count" Binding="{Binding NumVpnSessions}"></DataGridTextColumn>
-                    <DataGridTextColumn Header="Operator" Binding="{Binding Operator}"></DataGridTextColumn>
+            <StackPanel WindowChrome.IsHitTestVisibleInChrome="True" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,10,0" Height="40" Orientation="Horizontal" FlowDirection="RightToLeft">
+                <Button Style="{StaticResource IconButtonsStyle}" Content="{DynamicResource close}" Tag="IsCloseButton"
+                        Command="{Binding CloseAppCommand}"/>
+                
+                <Button Style="{DynamicResource IconButtonsStyle}" Content="{DynamicResource minimize}"
+                        Command="{Binding MinimizeAppCommand}"/>
+            </StackPanel>
+            <ProgressBar Grid.Row="1" HorizontalAlignment="Left" IsIndeterminate="True" Style="{StaticResource MaterialDesignCircularProgressBar}"
+                         Visibility="{Binding IsProgressBarEnabled}" Margin="20,0,0,0" />
+            <TextBox Grid.Row="1" HorizontalContentAlignment="Center" VerticalAlignment="Center" Height="26" 
+                     VerticalContentAlignment="Center" Margin="80,0,80,0"
+                     materialDesign:HintAssist.Hint="Поиск VPN сервера" Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+            <Button Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="Segoe MDL2 Assets"
+                    Command="{Binding LoadListCommand}" Content="&#xE72C;" Margin="0,0,20,0">
+            </Button>
 
+            <DataGrid Grid.Row="2" ItemsSource="{Binding CollectionView, IsAsync=True, UpdateSourceTrigger=PropertyChanged,
+                Mode=TwoWay}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow"
+                      SelectedItem="{Binding SelectedServer, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="HostName" Binding="{Binding HostName, Converter={StaticResource DataGridValueConverter}}"/>
+                    <DataGridTextColumn Header="Ip" Binding="{Binding Ip}"/>
+                    <DataGridTextColumn Header="Ping" Binding="{Binding Ping}"/>
+                    <DataGridTextColumn Header="Speed" Binding="{Binding Speed}"/>
+                    <DataGridTextColumn Header="Country" Binding="{Binding CountryLong}"/>
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>
+        
 
     </Grid>
 </Window>

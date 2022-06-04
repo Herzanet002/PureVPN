@@ -11,5 +11,6 @@ namespace PureVPN.Views
         {
             InitializeComponent();
         }
+
     }
 }

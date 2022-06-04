@@ -1,160 +1,164 @@
 ﻿using PureVPN.Commands;
 using PureVPN.Models;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
+using System.ComponentModel;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
-using PureVPN.Views;
 
 
 namespace PureVPN.ViewModels
 {
     internal class MainWindowViewModel : Base.ViewModel
     {
-        private const string ADDRESS = @"https://www.vpngate.net/api/iphone/";
-
-        private ObservableCollection<ServerInfo> _servers;
-        private Visibility _isProgressBarEnabled = Visibility.Collapsed;
-        private static string _ipString;
+        private const string IP_SERVICE = "https://api.ipify.org";
+        private static ObservableCollection<ServerInfo> _servers;
+        private static Visibility _isServerInfoVisible = Visibility.Collapsed;
+        private static Visibility _isProgressBarEnabled = Visibility.Collapsed;
+        private static Visibility _isConnectionStatusVisible = Visibility.Collapsed;
+        private static string? _ipString;
         private static ServerInfo _selectedServer;
-        private static Page _currentPage;
-        private static ServerInfoPage _serverInfoPage;
-        public ICommand LoadListCommand { get; set; }
+        private static string _connectButtonContent;
+        private static string? _searchText;
+        private ICommand _connectCommand;
+        private ICollectionView _collectionView;
 
-        public string IpString
+        public ICommand LoadListCommand { get; set; }
+        public ICommand CloseAppCommand => new LambdaCommand(CloseWindowCommand_Executed);
+        public ICommand MinimizeAppCommand => new LambdaCommand(MinimizeWindowCommand_Executed);
+
+        public ICommand ConnectCommand
+        {
+            get => _connectCommand;
+            set => Set(ref _connectCommand, value);
+        }
+        public string ConnectButtonContent
+        {
+            get => _connectButtonContent;
+            set => Set(ref _connectButtonContent, value);
+        }
+        public string? IpString
         {
             get => _ipString;
             set => Set(ref _ipString, value);
-        }
-        public Page CurrentPage
-        {
-            get => _currentPage;
-            set => Set(ref _currentPage, value);
         }
         public ServerInfo SelectedServer
         {
             get => _selectedServer;
             set
             {
-                CurrentPage = _serverInfoPage;
+                IsServerInfoVisible = Visibility.Visible;
                 Set(ref _selectedServer, value);
             }
         }
-
+        public ICollectionView CollectionView
+        {
+            get => _collectionView;
+            set => Set(ref _collectionView, value);
+        }
         public ObservableCollection<ServerInfo> Servers
         {
             get => _servers;
             set => Set(ref _servers, value);
         }
-
         public Visibility IsProgressBarEnabled
         {
             get => _isProgressBarEnabled;
             set => Set(ref _isProgressBarEnabled, value);
         }
+        public Visibility IsConnectionStatusVisible
+        {
+            get => _isConnectionStatusVisible;
+            set => Set(ref _isConnectionStatusVisible, value);
+        }
+        public Visibility IsServerInfoVisible
+        {
+            get => _isServerInfoVisible;
+            set => Set(ref _isServerInfoVisible, value);
+        }
+        public string? SearchText
+        {
+            get => _searchText;
+            set
+            {
+                Set(ref _searchText, value);
+                CollectionView.Filter = Filter;
+            }
+        }
+
         public MainWindowViewModel()
         {
             IpString = GetIpAddress();
-            _servers = new ObservableCollection<ServerInfo>();
+            Servers = new ObservableCollection<ServerInfo>();
+            ConnectButtonContent = Application.Current.Resources["ConnectTitleForButton"] as string ?? string.Empty;
             LoadListCommand = new LambdaCommand(GetServersListCommand_Executed, _ => true);
+            ConnectCommand = new LambdaCommand(ConnectCommand_Executed, _ => true);
             GetServersList();
+            CollectionView = CollectionViewSource.GetDefaultView(Servers);
+        }
+
+        private bool Filter(object itemForFiltering)
+        {
+            if (!(SearchText == null && string.IsNullOrEmpty(SearchText)))
+            {
+                return itemForFiltering is ServerInfo server &&
+                       (server.CountryLong.ToLower().Contains(SearchText) ||
+                        server.HostName.ToLower().Contains(SearchText) ||
+                        server.Ip.ToLower().Contains(SearchText));
+            }
+            return true;
         }
 
         private async void GetServersList()
         {
-            Servers = new ObservableCollection<ServerInfo>();
+            Servers.Clear();
+            IsServerInfoVisible = Visibility.Collapsed;
             IsProgressBarEnabled = Visibility.Visible;
+            var dataWorker = new DataWorker();
+
             await Task.Run(async () =>
             {
-                await foreach (var serverList in GetDataLines())
+                await foreach (var serverList in dataWorker.GetDataLines())
                     Application.Current.Dispatcher.Invoke(() => Servers.Add(serverList));
             });
+
             IsProgressBarEnabled = Visibility.Collapsed;
         }
-        private void GetServersListCommand_Executed(object obj)
-        {
-            
-            GetServersList();
 
-            
-        }
-        private static async Task<Stream> GetDataStream()
+        private void GetServersListCommand_Executed(object obj) => GetServersList();
+        private void CloseWindowCommand_Executed(object obj) => Application.Current.Shutdown();
+        private void MinimizeWindowCommand_Executed(object obj)
         {
-            var httpClient = new HttpClient();
-            var response = httpClient.GetAsync(ADDRESS).Result;
-            return await response.Content.ReadAsStreamAsync();
+            if (Application.Current.MainWindow != null)
+                Application.Current.MainWindow.WindowState = WindowState.Minimized;
         }
 
-        public static string GetIpAddress()
-        {
-            const string IP_SERVICE = "https://api.ipify.org";
-            return new HttpClient().GetStringAsync(IP_SERVICE).Result;
-        }
-        private static IEnumerable<string> GetDataContentLines()
-        {
-            using var dataStream = GetDataStream().Result;
-            using var streamReader = new StreamReader(dataStream);
 
-            while (!streamReader.EndOfStream)
-            {
-                var line = streamReader.ReadLine();
-                if (string.IsNullOrWhiteSpace(line)) continue;
-                yield return line;
-
-            }
+        private async void ConnectCommand_Executed(object obj)
+        {
+            var result = await VPN.ConnectVpn(SelectedServer.HostName);
+            if (result != 0) return;
+            IsConnectionStatusVisible = Visibility.Visible;
+            ConnectCommand = new LambdaCommand(DisconnectCommand_Executed, _ => true);
+            IpString = GetIpAddress();
+            ConnectButtonContent = Application.Current.Resources["DisconnectTitleForButton"] as string ?? string.Empty;
         }
 
-        private static ServerInfo InitializeServerList(string hostName, string ip, string ping, string speed, string country, string numOfSessions, string vpnOperator)
+        private void DisconnectCommand_Executed(object obj)
         {
-            switch (speed.Length)
-            {
-                case 7:
-                    speed = speed.Insert(1, ",").Substring(0, 4);
-                    break;
-                case 8:
-                    speed = speed.Insert(2, ",").Substring(0, 5);
-                    break;
-                case 9:
-                    speed = speed.Insert(3, ",").Substring(0, 6);
-                    break;
-                case 10:
-                    speed = speed.Insert(4, ",").Substring(0, 7);
-                    break;
-
-
-            }
-            return new ServerInfo
-            {
-                HostName = hostName.Trim() + ".opengw.net",
-                Ip = ip.Trim(),
-                Ping = ping.Trim() + " ms",
-                Speed = speed.Trim() + " Mbps",
-                CountryLong = country.Trim(),
-                NumVpnSessions = numOfSessions.Trim(),
-                Operator = vpnOperator.Trim(),
-            };
+            VPN.DisconnectVpn();
+            ConnectCommand = new LambdaCommand(ConnectCommand_Executed, _ => true);
+            IsConnectionStatusVisible = Visibility.Collapsed;
+            IpString = GetIpAddress();
+            ConnectButtonContent = Application.Current.Resources["ConnectTitleForButton"] as string ?? string.Empty;
         }
 
-        private static async IAsyncEnumerable<ServerInfo> GetDataLines()
-        {
-            var lines = GetDataContentLines()
-                .Skip(2)
-                .Select(s => s.Split(','));
+        private static string GetIpAddress() => new HttpClient().GetStringAsync(IP_SERVICE).Result;
 
-            foreach (var line in lines)
-            {
-                if (line.Length != 15) continue;
-                // HostName,IP,Score,Ping,Speed,CountryLong,CountryShort,NumVpnSessions,Uptime,TotalUsers,TotalTraffic,LogType,Operator,Message,OpenVPN_ConfigData_Base64
-                var list = InitializeServerList(line[0], line[1], line[3], line[4], line[5], line[7], line[12]);
-                await Task.Delay(50);
-                yield return list;
 
-            }
-        }
     }
+
+
 }
